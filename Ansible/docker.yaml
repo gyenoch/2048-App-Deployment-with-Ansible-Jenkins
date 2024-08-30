@@ -32,5 +32,13 @@
     - name: Push image
       command: docker push gyenoch/2048-game:latest
 
+    - name: Stop & Remove Docker Container
+      command: |
+        if [ "$(docker ps -q -f name=2048-game)" ]; then
+            docker stop 2048-game
+            docker rm 2048-game
+        fi
+      ignore_errors: yes
+
     - name: Run container
       command: docker run -d --name 2048-game -p 80:80 gyenoch/2048-game:latest
