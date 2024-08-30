@@ -4,6 +4,9 @@
   gather_facts: yes  # Gather facts about the target host
 
   tasks:
+    - name: Authenticate EKS Cluster
+      command: aws eks update-kubeconfig --name Tetris-EKS-Cluster
+
     - name: Delete Deployment
       command: kubectl delete -f /home/ubuntu/deployment.yaml
 
