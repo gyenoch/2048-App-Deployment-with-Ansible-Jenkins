@@ -16,9 +16,12 @@
       command: docker tag 2048-game gyenoch/2048-game:latest
 
     - name: Retrieve Docker credentials from AWS Secrets Manager
-      amazon.aws.aws_secret:
-        secret_id: "docker_credentials"
-      register: docker_credentials
+      command: aws secretsmanager get-secret-value --secret-id docker_credentials --query 'SecretString' --output text
+      register: secret_output
+
+    - name: Parse Docker credentials
+      set_fact:
+        docker_credentials: "{{ secret_output.stdout | from_json }}"
 
     - name: Log in to Docker Hub
       community.docker.docker_login:
