@@ -11,5 +11,8 @@
       become: yes  # Use sudo for copying if required
       become_user: root  # Use a privileged user for copying if required
 
+    - name: Authenticate EKS Cluster
+      command: aws eks update-kubeconfig --name Tetris-EKS-Cluster --region us-east-1
+
     - name: Apply Deployment
       command: kubectl apply -f /home/ubuntu/deployment.yaml
