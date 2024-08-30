@@ -33,7 +33,7 @@
       command: docker push gyenoch/2048-game:latest
 
     - name: Stop & Remove Docker Container
-      command: |
+      shell: |
         if [ "$(docker ps -q -f name=2048-game)" ]; then
             docker stop 2048-game
             docker rm 2048-game
