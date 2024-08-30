@@ -1,0 +1,113 @@
+pipeline {
+    agent any 
+    tools {
+        jdk 'jdk'
+        nodejs 'nodejs'
+    }
+    environment  {
+        SCANNER_HOME=tool 'sonar-scanner'
+        NVD_API_KEY = credentials('nvd-api-key')
+    }
+    stages {
+        stage('Cleaning Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+        stage('Checkout from Git') {
+            steps {
+                git branch: 'main', url: 'https://github.com/gyenoch/2048-App-Deployment-with-Ansible-Jenkins.git'
+            }
+        }
+        stage('Sonarqube Analysis') {
+            steps {
+                    withSonarQubeEnv('sonar-server') {
+                        sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=2048-game \
+                        -Dsonar.projectKey=2048-game '''
+                    }
+                
+            }
+        }
+        stage('Quality Check') {
+            steps {
+                script {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token' 
+                }
+            }
+        }
+        stage('Installing Dependencies') {
+            steps {
+                sh 'npm install'
+                
+            }
+        }
+        stage('OWASP Dependency-Check Scan') {
+            steps {
+                    dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit --nvdApiKey ${NVD_API_KEY}', odcInstallation: 'DP-Check'
+                    dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+                
+            }
+        }
+        stage('Trivy File Scan') {
+            steps {
+                sh 'trivy fs . > trivyfs.txt'
+                
+            }
+        }
+        stage('Ansible Docker') {
+            steps {
+                dir('Ansible'){
+                  script {
+                        ansiblePlaybook credentialsId: 'SSH', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/', playbook: 'docker.yaml'
+                    }     
+                }    
+            }
+        }
+        stage("TRIVY Image Scan") {
+            steps {
+                sh 'trivy image gyenoch/2048-game:latest > trivyimage.txt' 
+            }
+        }
+        stage('k8s using ansible'){
+            steps{
+                dir('Ansible') {
+                    script{
+                        ansiblePlaybook credentialsId: 'SSH', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/', playbook: 'kube.yaml'
+                    }
+                } 
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                def jobName = env.JOB_NAME 
+                def buildNumber = env.BUILD_NUMBER 
+                def pipelineStatus = currentBuild.result ?: 'UNKNOWN' 
+                def bannerColor = pipelineStatus.toUpperCase() == 'SUCCESS' ? 'green' : 'red'
+
+                def body = """
+                    <html> <body>
+                    <div style="border: 4px solid ${bannerColor}; padding: 10px;">
+                    <h2>${jobName} - Build ${buildNumber}</h2>
+                    <div style="background-color: ${bannerColor}; padding: 10px;">
+                    <h3 style="color: white;">Pipeline Status: 
+                    ${pipelineStatus.toUpperCase()}</h3>
+                    </div>
+                    <p>Check the <a href="${BUILD_URL}">console output</a>.</p>
+                    </div>
+                    </body> </html> """
+
+                emailext ( 
+                    subject: "${jobName} - Build ${buildNumber} - ${pipelineStatus.toUpperCase()}", 
+                    body: body, to: 'www.gyenoch@gmail.com', 
+                    from: 'jenkins@example.com', 
+                    replyTo: 'www.gyenoch@gmail.com', 
+                    mimeType: 'text/html', 
+                    attachmentsPattern: 'trivy-image-report.html' 
+                )
+            }
+        }
+    }
+}

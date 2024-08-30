@@ -1,0 +1,102 @@
+properties([
+    parameters([
+        string(defaultValue: 'variables.tfvars', description: 'Specify the file name', name: 'File-Name'),
+        choice(choices: ['apply', 'destroy'], description: 'Select Terraform action', name: 'Terraform-Action')
+    ])
+])
+
+pipeline {
+    agent any
+    stages {
+        stage('Checkout from Git') {
+            steps {
+                git branch: 'main', url: 'https://github.com/gyenoch/2048-App-Deployment-with-Ansible-Jenkins.git'
+            }
+        }
+        stage('Initializing Terraform') {
+            steps {
+                withAWS(credentials: 'aws-key', region: 'us-east-1') {
+                dir('EKS-TF') {
+                    script {
+                        sh 'terraform init'
+                    }
+                }
+                }
+            }
+        }
+        stage('Validate Terraform Code') {
+            steps {
+                withAWS(credentials: 'aws-key', region: 'us-east-1') {
+                dir('EKS-TF') {
+                    script {
+                        sh 'terraform validate'
+                    }
+                }
+                }
+            }
+        }
+        stage('Terraform Plan') {
+            steps {
+                withAWS(credentials: 'aws-key', region: 'us-east-1') {
+                dir('EKS-TF') {
+                    script {
+                        sh "terraform plan -var-file=${params.'File-Name'}"
+                    }
+                }
+                }
+            }
+        }
+        stage('Terraform Action') {
+            steps {
+                withAWS(credentials: 'aws-key', region: 'us-east-1') { 
+                script {
+                    echo "${params.'Terraform-Action'}"
+                    dir('EKS-TF') {
+                        script {
+                            if (params.'Terraform-Action' == 'apply') {
+                                sh "terraform apply -auto-approve -var-file=${params.'File-Name'}"
+                            } else if (params.'Terraform-Action' == 'destroy') {
+                                sh "terraform destroy -auto-approve -var-file=${params.'File-Name'}"
+                            } else {
+                                error "Invalid value for Terraform-Action: ${params.'Terraform-Action'}"
+                            }
+                        }
+                    }
+                }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                def jobName = env.JOB_NAME 
+                def buildNumber = env.BUILD_NUMBER 
+                def pipelineStatus = currentBuild.result ?: 'UNKNOWN' 
+                def bannerColor = pipelineStatus.toUpperCase() == 'SUCCESS' ? 'green' : 'red'
+
+                def body = """
+                    <html> <body>
+                    <div style="border: 4px solid ${bannerColor}; padding: 10px;">
+                    <h2>${jobName} - Build ${buildNumber}</h2>
+                    <div style="background-color: ${bannerColor}; padding: 10px;">
+                    <h3 style="color: white;">Pipeline Status: 
+                    ${pipelineStatus.toUpperCase()}</h3>
+                    </div>
+                    <p>Check the <a href="${BUILD_URL}">console output</a>.</p>
+                    </div>
+                    </body> </html> """
+
+                emailext ( 
+                    subject: "${jobName} - Build ${buildNumber} - ${pipelineStatus.toUpperCase()}", 
+                    body: body, to: 'www.gyenoch@gmail.com', 
+                    from: 'jenkins@example.com', 
+                    replyTo: 'www.gyenoch@gmail.com', 
+                    mimeType: 'text/html', 
+                    attachmentsPattern: 'trivy-image-report.html' 
+                )
+            }
+        }
+    }
+}
