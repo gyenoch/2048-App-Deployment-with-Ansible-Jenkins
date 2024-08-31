@@ -52,7 +52,6 @@ jobs:
     needs: Setup-Terraform
     steps:
       - name: Terraform Init
-        working-directory: EC2-TF
         run: terraform init
 
   Terraform-Format-Validate:
@@ -60,11 +59,9 @@ jobs:
     needs: Terraform-Init
     steps:
       - name: Terraform Format
-        working-directory: EC2-TF
         run: terraform fmt
 
       - name: Terraform Validate
-        working-directory: EC2-TF
         run: terraform validate
 
   Terraform-Action:
@@ -73,15 +70,12 @@ jobs:
     steps:
       - name: Terraform Plan
         if: ${{ github.event.inputs.action == 'plan' }}
-        working-directory: EC2-TF
         run: terraform plan -var-file=${{ github.event.inputs.tfvars_file }} -input=false
 
       - name: Terraform Apply
         if: ${{ github.event.inputs.action == 'apply' }}
-        working-directory: EC2-TF
         run: terraform apply -auto-approve -var-file=${{ github.event.inputs.tfvars_file }} -input=false
 
       - name: Terraform Destroy
         if: ${{ github.event.inputs.action == 'destroy' }}
-        working-directory: EC2-TF
         run: terraform destroy -auto-approve -var-file=${{ github.event.inputs.tfvars_file }} -input=false
