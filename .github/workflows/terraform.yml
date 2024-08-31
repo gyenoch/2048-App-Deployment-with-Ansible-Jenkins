@@ -98,7 +98,7 @@ jobs:
       
     - name: Terraform Init
       working-directory: EC2-TF
-      run: terraform init -reconfigure
+      run: terraform init
 
     - name: Terraform Plan
       if: ${{ github.event.inputs.action  == 'plan' }}
