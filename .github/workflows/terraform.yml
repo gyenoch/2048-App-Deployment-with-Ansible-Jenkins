@@ -9,7 +9,7 @@ on:
         default: 'variables.tfvars'
       action:
         type: choice
-        description: 'Plan, Apply, or Destroy'
+        description: 'Apply or Destroy'
         options:
         - plan
         - apply
@@ -26,17 +26,12 @@ permissions:
   contents: read
 
 jobs:
-  
   CheckOut-Repo:
     runs-on: ubuntu-latest
     environment: production
-
-    defaults:
-      run:
-        shell: bash
-        working-directory: EC2-TF
-
+    
     steps:
+      # Checkout the repository to the GitHub Actions runner
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -45,14 +40,24 @@ jobs:
     needs: CheckOut-Repo
 
     steps:
+      # Install the latest version of Terraform CLI
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: 1.8.4
 
-  Terraform-Formatting-Validating:
+  Terraform-Initializing:
     runs-on: ubuntu-latest
     needs: Setting-Up-Terraform
+
+    steps:
+      - name: Terraform Init
+        working-directory: EC2-TF
+        run: terraform init
+
+  Terraform-Formatting-Validating:
+    runs-on: ubuntu-latest
+    needs: Terraform-Initializing
 
     steps:
       - name: Terraform Format
@@ -68,17 +73,13 @@ jobs:
     needs: Terraform-Formatting-Validating
 
     steps:
-      - name: Terraform Init
-        working-directory: EC2-TF
-        run: terraform init
-
       - name: Terraform Plan
-        if: ${{ github.event.inputs.action == 'plan' }}
+        if: ${{ github.event.inputs.action  == 'plan' }}
         working-directory: EC2-TF
         run: terraform plan -var-file=${{ github.event.inputs.tfvars_file }} -input=false
 
       - name: Terraform Apply
-        if: ${{ github.event.inputs.action == 'apply' }}
+        if: ${{ github.event.inputs.action  == 'apply' }}
         working-directory: EC2-TF
         run: terraform apply -auto-approve -var-file=${{ github.event.inputs.tfvars_file }} -input=false
 
