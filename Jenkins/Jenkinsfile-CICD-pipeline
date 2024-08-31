@@ -82,7 +82,7 @@ pipeline {
                         echo "Current image tag: $imageTag"
                         
                         # Replace the old image tag with the new BUILD_NUMBER
-                        sed -i "s|gyenoch/2048-game:$imageTag|gyenoch/2048-game:${BUILD_NUMBER}|"
+                        sed -i "s|gyenoch/2048-game:$imageTag|gyenoch/2048-game:${BUILD_NUMBER}|" deployment.yaml
                         
                         # Commit and push the changes to the GitHub repository
                         git add deployment.yaml
