@@ -122,7 +122,7 @@ jobs:
 
     - name: Terraform Init
       working-directory: EC2-TF
-      run: terraform init
+      run: terraform init -migrate-state
 
       
     - name: Terraform Plan
