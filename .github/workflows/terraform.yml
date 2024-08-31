@@ -78,7 +78,7 @@ jobs:
 
     - name: Terraform Init
       working-directory: EC2-TF
-      run: terraform init -migrate-state
+      run: terraform init
 
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
@@ -98,8 +98,8 @@ jobs:
       
     - name: Terraform Init
       working-directory: EC2-TF
-      run: terraform init -migrate-state
-        
+      run: terraform init -reconfigure
+
     - name: Terraform Plan
       if: ${{ github.event.inputs.action  == 'plan' }}
       working-directory: EKS-TF
