@@ -25,7 +25,7 @@ resource "aws_security_group" "Jenkins-sg" {
   }
 
   tags = {
-    Name = "Jenkins-sg"
+    Name = var.sg_name
   }
 }
 
@@ -79,15 +79,15 @@ resource "aws_iam_instance_profile" "tetris-game_instance_profile" {
 # JENKINS SONARQUBE EC2 INSTANCE
 resource "aws_instance" "web" {
   ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "t2.large"
-  key_name               = "jenkins"
+  instance_type          = var.web_instance_type
+  key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.Jenkins-sg.id]
   user_data              = templatefile("./EC2.sh", {})
 
   iam_instance_profile = aws_iam_instance_profile.tetris-game_instance_profile.name
 
   tags = {
-    Name = "tetris-game"
+    Name = var.web1_name
   }
   root_block_device {
     volume_size = 30
@@ -95,14 +95,14 @@ resource "aws_instance" "web" {
 }
 resource "aws_instance" "web2" {
   ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "t2.medium"
-  key_name               = "jenkins"
+  instance_type          = var.web2_instance_type
+  key_name               = var.key_name
   vpc_security_group_ids = [aws_security_group.Jenkins-sg.id]
   user_data              = file("./install_monitoring_stack.sh")
 
   iam_instance_profile = aws_iam_instance_profile.tetris-game_instance_profile.name
   tags = {
-    Name = "Monitering via grafana"
+    Name = var.web2_name
   }
   root_block_device {
     volume_size = 30
