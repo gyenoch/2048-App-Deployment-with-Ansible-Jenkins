@@ -75,6 +75,11 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+
+    - name: Terraform Init
+      working-directory: EC2-TF
+      run: terraform init -migrate-state
+
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
       working-directory: EC2-TF
@@ -87,7 +92,14 @@ jobs:
   Terraform-Action:
     runs-on: ubuntu-latest
     needs: Terraform-Formatting-Validating
-    steps:    
+    steps: 
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Terraform Init
+      working-directory: EC2-TF
+      run: terraform init -migrate-state
+        
     - name: Terraform Plan
       if: ${{ github.event.inputs.action  == 'plan' }}
       working-directory: EKS-TF
