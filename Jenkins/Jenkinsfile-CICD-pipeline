@@ -74,7 +74,6 @@ pipeline {
                 dir('.') {
                     withCredentials([string(credentialsId: 'github', variable: 'GITHUB-APP')]) {
                     sh '''
-                        set -euxo pipefail
                         git config user.email "www.gyenoch@gmail.com"
                         git config user.name "gyenoch"
                         
