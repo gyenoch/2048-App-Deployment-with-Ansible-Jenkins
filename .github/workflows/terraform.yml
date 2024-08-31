@@ -36,7 +36,7 @@ jobs:
     # defaults:
     #   run:
     #     shell: bash
-    #     working-directory: eks
+    #     working-directory: EC2-TF
 
         
 
@@ -91,7 +91,7 @@ jobs:
       
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
-      
+      working-directory: EC2-TF
       run: terraform init
 
   Terraform-Formatting-Validating:
@@ -107,6 +107,10 @@ jobs:
       uses: hashicorp/setup-terraform@v1
       with:
         terraform_version: 1.8.4
+        
+    - name: Terraform Init
+      working-directory: EC2-TF
+      run: terraform init
       
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
