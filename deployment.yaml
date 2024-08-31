@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: game-2048
-        image: gyenoch/2048-game:15
+        image: gyenoch/2048-game:1
         ports:
         - containerPort: 80
         imagePullPolicy: Always
