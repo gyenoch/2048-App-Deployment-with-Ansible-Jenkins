@@ -96,15 +96,16 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       
-    - name: Terraform Init
-      working-directory: EC2-TF
-      run: terraform init
+    # - name: Terraform Init
+    #   working-directory: EC2-TF
+    #   run: terraform init
 
     - name: Terraform Plan
       if: ${{ github.event.inputs.action  == 'plan' }}
       working-directory: EKS-TF
       # Generates an execution plan for Terraform
       run: |
+        terraform init
         terraform plan -var-file=${{ github.event.inputs.tfvars_file }} -input=false
 
     
@@ -112,9 +113,13 @@ jobs:
     - name: Terraform Action
       if: ${{ github.event.inputs.action  == 'apply' }}
       working-directory: EC2-TF
-      run: terraform ${{ github.event.inputs.action }} -auto-approve -var-file=${{ github.event.inputs.tfvars_file }} -input=false
+      run: |
+        terraform init
+        terraform ${{ github.event.inputs.action }} -auto-approve -var-file=${{ github.event.inputs.tfvars_file }} -input=false
 
     - name: Terraform Destroy
       if: ${{ github.event.inputs.action == 'destroy' }}
       working-directory: EC2-TF
-      run: terraform ${{ github.event.inputs.action }} -auto-approve -var-file=${{ github.event.inputs.tfvars_file }} -input=false
+      run: |
+        terraform init
+        terraform ${{ github.event.inputs.action }} -auto-approve -var-file=${{ github.event.inputs.tfvars_file }} -input=false
