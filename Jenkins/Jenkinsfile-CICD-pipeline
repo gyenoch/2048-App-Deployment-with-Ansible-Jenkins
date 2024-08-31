@@ -99,7 +99,7 @@ pipeline {
             steps {
                 dir('Ansible') {
                     script {
-                        ansiblePlaybook credentialsId: 'SSH', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/', playbook: 'k8s.yaml', extraVars: [BUILD_NUMBER: "${env.BUILD_NUMBER}"]
+                        ansiblePlaybook credentialsId: 'SSH', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/', playbook: 'kube.yaml'
                     }
                 } 
             }
