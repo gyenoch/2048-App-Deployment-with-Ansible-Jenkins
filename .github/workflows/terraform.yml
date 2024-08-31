@@ -119,11 +119,6 @@ jobs:
       uses: hashicorp/setup-terraform@v1
       with:
         terraform_version: 1.8.4
-
-    - name: Terraform Init
-      working-directory: EC2-TF
-      run: terraform init -migrate-state
-
       
     - name: Terraform Plan
       if: ${{ github.event.inputs.action  == 'plan' }}
