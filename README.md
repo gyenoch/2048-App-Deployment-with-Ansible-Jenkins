@@ -12,7 +12,7 @@ cd 2048-App-Deployment-with-Ansible-Jenkins
 terraform init
 terraform apply
 ```
-# Jenkins, Sonarqube, Prometheus, Node Exporter and Grafana Servers are Created
+### Jenkins, Sonarqube, Prometheus, Node Exporter and Grafana Servers are Created
 Copy IP Addresses and setup Servers in the browser
 
 http://<IP-Address>:8080/  # Jenkins Server
