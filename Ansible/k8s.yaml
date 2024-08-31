@@ -24,26 +24,27 @@
 #       command: kubectl apply -f /home/ubuntu/deployment.yaml
 
 - name: Deploy Kubernetes Application
-  hosts: local
-  gather_facts: yes
+  hosts: local  # Replace with your target Kubernetes master host or group
+  gather_facts: yes  # Gather facts about the target host
 
   tasks:
     - name: Authenticate EKS Cluster
-      command: aws eks update-kubeconfig --name Tetris-EKS-Cluster
+      command: aws eks update-kubeconfig --name Tetris-EKS-Cluster --region us-east-1
 
-    - name: Copy deployment.yaml to Kubernetes master
-      copy:
-        src: /var/lib/jenkins/workspace/2048-game/deployment.yaml
-        dest: /home/ubuntu/
-      become: yes
-      become_user: root
-
-    - name: Delete Deployment
+    - name: Delete Existing Deployment (if any)
       command: kubectl delete -f /home/ubuntu/deployment.yaml
-      
-    - name: Remove file
-      command: rm -rf /home/ubuntu/deployment.yaml
+      ignore_errors: yes  # Ignore errors if the deployment doesn't exist
 
-    - name: Apply Deployment
+    - name: Remove old deployment.yaml file (if any)
+      command: rm -f /home/ubuntu/deployment.yaml
+      ignore_errors: yes  # Ignore errors if the file doesn't exist
+
+    - name: Copy new deployment.yaml to Kubernetes master
+      copy:
+        src: /var/lib/jenkins/workspace/2048-game/deployment.yaml  # Assuming Jenkins workspace variable
+        dest: /home/ubuntu/
+      become: yes  # Use sudo for copying if required
+      become_user: root  # Use a privileged user for copying if required
+
+    - name: Apply New Deployment
       command: kubectl apply -f /home/ubuntu/deployment.yaml
-
