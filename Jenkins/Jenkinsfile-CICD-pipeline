@@ -72,7 +72,7 @@ pipeline {
             }
             steps {
                 dir('.') {
-                    withCredentials([string(credentialsId: 'github', variable: 'GITHUB-APP')]) {
+                    withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
                     sh '''
                         git config user.email "www.gyenoch@gmail.com"
                         git config user.name "gyenoch"
@@ -87,7 +87,7 @@ pipeline {
                         # Commit and push the changes to the GitHub repository
                         git add deployment.yaml
                         git commit -m "Update deployment image to version ${BUILD_NUMBER}"
-                        git push https://${GITHUB-APP}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
+                        git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
                     '''
                     }
                 }
