@@ -21,3 +21,4 @@ http://<IP-Address>:9090/  # Prometheus Server
 http://<IP-Address>:9100/  # Node Exporter Server
 http://<IP-Address>:3000/  # Grafana Server
 
+![Screenshot 2024-08-31 064629](https://github.com/user-attachments/assets/8da19939-f613-4664-accf-10915006b9a7)
