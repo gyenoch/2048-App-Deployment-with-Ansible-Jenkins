@@ -73,21 +73,25 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'github', variable: 'GITHUB_APP')]) {
                     sh '''
-                        set -euxo pipefail
                         git config user.email "www.gyenoch@gmail.com"
                         git config user.name "gyenoch"
-                        BUILD_NUMBER=${BUILD_NUMBER}
-                        echo $BUILD_NUMBER
-                        imageTag=$(grep 'image:\\s*gyenoch/2048-game:' deployment.yaml | sed 's/.*gyenoch\\/2048-game:\\([^ ]*\\)/\\1/')
-                        echo $imageTag
-                        sed -i "s|gyenoch/2048-game:$imageTag|gyenoch/2048-game:$BUILD_NUMBER|" deployment.yaml
+                        
+                        # Extract current image tag from deployment.yaml
+                        imageTag=$(grep 'image:' deployment.yaml | awk -F':' '{print $3}')
+                        echo "Current image tag: $imageTag"
+                        
+                        # Replace the old image tag with the new BUILD_NUMBER
+                        sed -i "s|gyenoch/2048-game:$imageTag|gyenoch/2048-game:${BUILD_NUMBER}|" deployment.yaml
+                        
+                        # Commit and push the changes to the GitHub repository
                         git add deployment.yaml
-                        git commit -m "Update deployment Image to version ${BUILD_NUMBER}"
+                        git commit -m "Update deployment image to version ${BUILD_NUMBER}"
                         git push https://${GITHUB_APP}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
                     '''
                 }
             }
         }
+
 
         stage('k8s using ansible') {
             steps {
