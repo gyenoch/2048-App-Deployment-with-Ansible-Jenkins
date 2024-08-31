@@ -73,6 +73,7 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'github', variable: 'GITHUB_APP')]) {
                     sh '''
+                        set -euxo pipefail
                         git config user.email "www.gyenoch@gmail.com"
                         git config user.name "gyenoch"
                         BUILD_NUMBER=${BUILD_NUMBER}
