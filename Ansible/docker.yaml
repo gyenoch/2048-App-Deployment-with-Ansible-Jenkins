@@ -13,7 +13,7 @@
         chdir: /var/lib/jenkins/workspace/2048-game
 
     - name: Tag image
-      command: docker tag 2048-game gyenoch/2048-game:${BUILD_NUMBER}
+      command: docker tag 2048-game gyenoch/2048-game:{{ BUILD_NUMBER }}
 
     - name: Retrieve Docker credentials from AWS Secrets Manager
       command: aws secretsmanager get-secret-value --secret-id docker_credentials --query 'SecretString' --output text
@@ -30,7 +30,7 @@
         password: "{{ docker_credentials.docker_password }}"
 
     - name: Push image
-      command: docker push gyenoch/2048-game:${BUILD_NUMBER}
+      command: docker push gyenoch/2048-game:{{ BUILD_NUMBER }}
 
     - name: Stop & Remove Docker Container
       shell: |
@@ -41,4 +41,4 @@
       ignore_errors: yes
 
     - name: Run container
-      command: docker run -d --name 2048-game -p 80:80 gyenoch/2048-game:${BUILD_NUMBER}
+      command: docker run -d --name 2048-game -p 80:80 gyenoch/2048-game:{{ BUILD_NUMBER }}
