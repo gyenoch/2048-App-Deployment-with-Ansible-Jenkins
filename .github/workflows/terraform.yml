@@ -41,7 +41,10 @@ jobs:
           echo "Directory contents:"
           ls -la
 
-  
+  Setup-Terraform:
+    runs-on: ubuntu-latest
+    needs: CheckOut-Repo
+    steps:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -49,8 +52,13 @@ jobs:
 
   Terraform-Init:
     runs-on: ubuntu-latest
-    needs: CheckOut-Repo
+    needs: Setup-Terraform
     steps:
+      - name: Debug Directory Contents
+        run: |
+          echo "Contents of EC2-TF:"
+          ls -la EC2-TF
+
       - name: Terraform Init
         working-directory: EC2-TF
         run: terraform init
