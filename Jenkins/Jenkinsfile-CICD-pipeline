@@ -71,7 +71,8 @@ pipeline {
                 GIT_USER_NAME = "gyenoch"
             }
             steps {
-                withCredentials([string(credentialsId: 'github', variable: 'GITHUB_APP')]) {
+                dir('.') {
+                    withCredentials([string(credentialsId: 'github', variable: 'GITHUB_APP')]) {
                     sh '''
                         git config user.email "www.gyenoch@gmail.com"
                         git config user.name "gyenoch"
@@ -88,6 +89,7 @@ pipeline {
                         git commit -m "Update deployment image to version ${BUILD_NUMBER}"
                         git push https://${GITHUB_APP}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
                     '''
+                    }
                 }
             }
         }
