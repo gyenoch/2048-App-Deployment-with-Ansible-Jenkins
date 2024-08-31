@@ -4,8 +4,8 @@ pipeline {
         jdk 'jdk'
         nodejs 'nodejs'
     }
-    environment  {
-        SCANNER_HOME=tool 'sonar-scanner'
+    environment {
+        SCANNER_HOME = tool 'sonar-scanner'
         NVD_API_KEY = credentials('nvd-api-key')
     }
     stages {
@@ -21,11 +21,10 @@ pipeline {
         }
         stage('Sonarqube Analysis') {
             steps {
-                    withSonarQubeEnv('sonar-server') {
-                        sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=2048-game \
-                        -Dsonar.projectKey=2048-game '''
-                    }
-                
+                withSonarQubeEnv('sonar-server') {
+                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=2048-game \
+                    -Dsonar.projectKey=2048-game '''
+                }
             }
         }
         stage('Quality Check') {
@@ -38,40 +37,61 @@ pipeline {
         stage('Installing Dependencies') {
             steps {
                 sh 'npm install'
-                
             }
         }
         stage('OWASP Dependency-Check Scan') {
             steps {
-                    dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit --nvdApiKey ${NVD_API_KEY}', odcInstallation: 'DP-Check'
-                    dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-                
+                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit --nvdApiKey ${NVD_API_KEY}', odcInstallation: 'DP-Check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
         stage('Trivy File Scan') {
             steps {
                 sh 'trivy fs . > trivyfs.txt'
-                
             }
         }
         stage('Ansible Docker') {
             steps {
-                dir('Ansible'){
-                  script {
+                dir('Ansible') {
+                    script {
                         ansiblePlaybook credentialsId: 'SSH', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/', playbook: 'docker.yaml'
                     }     
                 }    
             }
         }
-        stage("TRIVY Image Scan") {
+        stage('TRIVY Image Scan') {
             steps {
-                sh 'trivy image gyenoch/2048-game:latest > trivyimage.txt' 
+                sh 'trivy image gyenoch/2048-game:${BUILD_NUMBER} > trivyimage.txt' 
             }
         }
-        stage('k8s using ansible'){
-            steps{
+
+        stage('Update Deployment file') {
+            environment {
+                GIT_REPO_NAME = "2048-App-Deployment-with-Ansible-Jenkins"
+                GIT_USER_NAME = "gyenoch"
+            }
+            steps {
+                withCredentials([string(credentialsId: 'github', variable: 'GITHUB_APP')]) {
+                    sh '''
+                        git config user.email "www.gyenoch@gmail.com"
+                        git config user.name "gyenoch"
+                        BUILD_NUMBER=${BUILD_NUMBER}
+                        echo $BUILD_NUMBER
+                        imageTag=$(grep 'image:\\s*gyenoch/2048-game:' deployment.yaml | sed 's/.*gyenoch\\/2048-game:\\([^ ]*\\)/\\1/')
+                        echo $imageTag
+                        sed -i "s|gyenoch/2048-game:$imageTag|gyenoch/2048-game:$BUILD_NUMBER|" deployment.yaml
+                        git add deployment.yaml
+                        git commit -m "Update deployment Image to version ${BUILD_NUMBER}"
+                        git push https://${GITHUB_APP}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
+                    '''
+                }
+            }
+        }
+
+        stage('k8s using ansible') {
+            steps {
                 dir('Ansible') {
-                    script{
+                    script {
                         ansiblePlaybook credentialsId: 'SSH', disableHostKeyChecking: true, installation: 'ansible', inventory: '/etc/ansible/', playbook: 'k8s.yaml'
                     }
                 } 
