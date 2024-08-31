@@ -28,11 +28,13 @@ permissions:
 jobs:
   CheckOut-Repo:
     runs-on: ubuntu-latest
-    environment: production
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: List Root Directory
+        run: ls -la
 
   Setting-Up-Terraform:
     runs-on: ubuntu-latest
@@ -49,6 +51,9 @@ jobs:
     needs: Setting-Up-Terraform
 
     steps:
+      - name: List EC2-TF Directory
+        run: ls -la EC2-TF
+
       - name: Terraform Init
         working-directory: EC2-TF
         run: terraform init
