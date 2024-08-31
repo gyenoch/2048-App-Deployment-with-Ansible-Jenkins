@@ -49,9 +49,7 @@ jobs:
 
   Setting-Up-Terraform:
     runs-on: ubuntu-latest
-    
     needs: CheckOut-Repo
-
     steps:
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
@@ -61,38 +59,20 @@ jobs:
 
   Terraform-Initializing:
     runs-on: ubuntu-latest
-
     needs: Setting-Up-Terraform
-
-    steps:
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: 1.8.4
-        
+    steps:       
     - name: Checkout repository
       uses: actions/checkout@v4
       
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       working-directory: EC2-TF
-      run: terraform init -migrate-state
+      run: terraform init      #-migrate-state
 
   Terraform-Formatting-Validating:
     runs-on: ubuntu-latest
     needs: Terraform-Initializing
-
     steps:
-        
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: 1.8.4
-      
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
       working-directory: EC2-TF
@@ -105,17 +85,7 @@ jobs:
   Terraform-Action:
     runs-on: ubuntu-latest
     needs: Terraform-Formatting-Validating
-    
-    steps:
-
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: 1.8.4
-      
+    steps:    
     - name: Terraform Plan
       if: ${{ github.event.inputs.action  == 'plan' }}
       working-directory: EKS-TF
