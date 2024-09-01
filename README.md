@@ -1,3 +1,6 @@
+
+![Screenshot 2024-08-31 092048](https://github.com/user-attachments/assets/8487ba3a-d031-4ad7-a8c6-38b830096147)
+
 ## Tetris Game Deployment on Kubernetes with Ansible and Jenkins
 In this project, we will demonstrate the deployment of the Tetris game on Kubernetes using Ansible and Jenkins. Let's begin by running the following commands
 
