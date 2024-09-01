@@ -9,6 +9,8 @@ In this project, we will demonstrate the deployment of the Tetris game on Kubern
 ## Table of Contents
 - [Ansible](#Ansible)
 
+## Ansible
+The `Ansible` directory contains the source code to build, tag and push docker image to DockerHub and deploy it to the EKS cluster
 
 ```bash
 # Clone the repository
