@@ -1,3 +1,5 @@
+[![LinkedIn](https://img.shields.io/badge/Connect%20with%20me%20on-LinkedIn-blue.svg)](https://www.linkedin.com/in/gyenoch/)
+[![Medium](https://img.shields.io/badge/Medium-12100E?style=for-the-badge&logo=medium&logoColor=white)](https://medium.com/@www.gyenoch)
 
 ![Screenshot 2024-08-31 092048](https://github.com/user-attachments/assets/8487ba3a-d031-4ad7-a8c6-38b830096147)
 
