@@ -8,28 +8,26 @@ In this project, we will demonstrate the deployment of the Tetris game on Kubern
 
 ## Table of Contents
 - [Ansible](#Ansible)
+- [EC2-TF](#EC2-TF)
+- [EKS-TF](#EKS-TF)
+- [Jenkins](#Jenkins)
+- [Deployment File](#Deployment File)
 
 ## Ansible
 The `Ansible` directory contains the source code to build, tag and push docker image to DockerHub and deploy it to the EKS cluster ensuring seamless deployment. It leverage the use of AWS Secret Manager for Docker Credential handling.
 
-```bash
-# Clone the repository
-git clone https://github.com/gyenoch/2048-App-Deployment-with-Ansible-Jenkins.git
-cd 2048-App-Deployment-with-Ansible-Jenkins
-```
+## EC2-TF
+The `EC2-TF` directory contains the source code to create two EC2 Instances, for Jenkins, Sonarqube, Ansible, Promethues, Node Exporter and Grafana and many other tools. Installation scripts will be use to install all this tools and softwares seamlessly.
 
-```bash
-# Move to EC2-TF directory and run commands to create Servers
-terraform init
-terraform apply
-```
-### Jenkins, Sonarqube, Prometheus, Node Exporter and Grafana Servers are Created
-Copy IP Addresses and setup Servers in the browser
+## EKS-TF
+The `EKS-TF` directory contains the source code to create EKS cluster, Node Group for our kubernetes deployment
 
-http://<IP-Address>:8080/  # Jenkins Server
-http://<IP-Address>:9000/  # Sonarqube Server
-http://<IP-Address>:9090/  # Prometheus Server
-http://<IP-Address>:9100/  # Node Exporter Server
-http://<IP-Address>:3000/  # Grafana Server
+## Jenkins
+The `Jenkins` directory contains the source code to create Jenkins pipeline for our our EKS cluster creation and kubernetes deployment. It contains to pipeline source code.
+
+## Deployment File 
+The `Deployment File` is find in the root directory which contains deployment instructions to kubernetes
+
+
 
 ![Screenshot 2024-08-31 064629](https://github.com/user-attachments/assets/8da19939-f613-4664-accf-10915006b9a7)
