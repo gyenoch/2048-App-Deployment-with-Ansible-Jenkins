@@ -10,7 +10,7 @@ In this project, we will demonstrate the deployment of the Tetris game on Kubern
 - [Ansible](#Ansible)
 
 ## Ansible
-The `Ansible` directory contains the source code to build, tag and push docker image to DockerHub and deploy it to the EKS cluster
+The `Ansible` directory contains the source code to build, tag and push docker image to DockerHub and deploy it to the EKS cluster ensuring seamless deployment. It leverage the use of AWS Secret Manager for Docker Credential handling.
 
 ```bash
 # Clone the repository
