@@ -3,7 +3,7 @@ terraform {
     bucket         = "gyenoch-tetris-bucket"
     region         = "us-east-1"
     key            = "EKS-DevSecOps-Tetris-Project/EC2-TF/terraform.tfstate"
-    dynamodb_table = "terraform-state-lock" #"Lock-Files"
+    dynamodb_table = "terraform-state-lock" 
     encrypt        = true
   }
 
