@@ -9,117 +9,61 @@ on:
         default: 'variables.tfvars'
       action:
         type: choice
-        description: 'Apply or Destroy'
+        description: 'Choose plan, apply, or destroy'
         options:
-        - plan
-        - apply
-        - destroy
+          - plan
+          - apply
+          - destroy
         required: true
         default: 'plan'
 
-env:
-      AWS_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-permissions:
-  contents: read
-
 jobs:
-  CheckOut-Repo:
+  terraform:
+    name: Terraform Plan, Apply, or Destroy
     runs-on: ubuntu-latest
-    environment: production
-
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./EC2-TF
-
-    env:
-      AWS_REGION: us-east-1
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    
-    
-    
     steps:
-    # Checkout the repository to the GitHub Actions runner
-    - name: Checkout
-      uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-  Setting-Up-Terraform:
-    runs-on: ubuntu-latest
-    needs: CheckOut-Repo
-    steps:
-    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v2
       with:
-        terraform_version: 1.8.4
+        terraform_version: 1.5.3
 
-  Terraform-Initializing:
-    runs-on: ubuntu-latest
-    needs: Setting-Up-Terraform
-    steps:       
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-    - name: Terraform Init
-      working-directory: ./EC2-TF
-      run: terraform init      #-migrate-state
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
 
-  Terraform-Formatting-Validating:
-    runs-on: ubuntu-latest
-    needs: Terraform-Initializing
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Terraform Init
-      working-directory: ./EC2-TF
+    - name: Initialize Terraform
       run: terraform init
-
-    # Checks that all Terraform configuration files adhere to a canonical format
-    - name: Terraform Format
       working-directory: ./EC2-TF
-      run: terraform fmt
 
-    - name: Terraform Validate
-      working-directory: ./EC2-TF
+    - name: Validate Terraform
       run: terraform validate
-
-  Terraform-Action:
-    runs-on: ubuntu-latest
-    needs: Terraform-Formatting-Validating
-    steps: 
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    # - name: Terraform Init
-    #   working-directory: EC2-TF
-    #   run: terraform init
-
-    - name: Terraform Plan
-      if: ${{ github.event.inputs.action  == 'plan' }}
-      working-directory: ./EKS-TF
-      # Generates an execution plan for Terraform
-      run: |
-        terraform init
-        terraform plan -var-file=${{ github.event.inputs.tfvars_file }} -input=false
-
-    
-      # Apply the Terraform Configuration according to the parameter
-    - name: Terraform Action
-      if: ${{ github.event.inputs.action  == 'apply' }}
       working-directory: ./EC2-TF
-      run: |
-        terraform init
-        terraform ${{ github.event.inputs.action }} -auto-approve -var-file=${{ github.event.inputs.tfvars_file }} -input=false
+
+    - name: Plan Terraform
+      if: github.event.inputs.action == 'plan'
+      id: plan
+      run: terraform plan -var-file=${{ github.event.inputs.tfvars_file }} -out=tfplan
+      working-directory: ./EC2-TF
+
+    - name: Apply Terraform
+      if: github.event.inputs.action == 'apply' && github.ref == 'refs/heads/main'
+      run: terraform apply -auto-approve tfplan
+      working-directory: ./EC2-TF
+
+    - name: Save Terraform Plan
+      if: github.event.inputs.action == 'plan' && github.ref != 'refs/heads/main'
+      uses: actions/upload-artifact@v3
+      with:
+        name: terraform-plan
+        path: ./EC2-TF/tfplan
 
     - name: Terraform Destroy
-      if: ${{ github.event.inputs.action == 'destroy' }}
+      if: github.event.inputs.action == 'destroy'
+      run: terraform destroy -var-file=${{ github.event.inputs.tfvars_file }} -auto-approve
       working-directory: ./EC2-TF
-      run: |
-        terraform init
-        terraform ${{ github.event.inputs.action }} -auto-approve -var-file=${{ github.event.inputs.tfvars_file }} -input=false
