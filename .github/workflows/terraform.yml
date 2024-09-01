@@ -46,14 +46,15 @@ jobs:
       working-directory: ./EC2-TF
 
     - name: Plan Terraform
-      if: github.event.inputs.action == 'plan'
       id: plan
       run: terraform plan -var-file=${{ github.event.inputs.tfvars_file }} -out=tfplan
       working-directory: ./EC2-TF
 
     - name: Apply Terraform
       if: github.event.inputs.action == 'apply' && github.ref == 'refs/heads/main'
-      run: terraform apply -auto-approve tfplan
+      run: |
+        terraform plan -var-file=${{ github.event.inputs.tfvars_file }} -out=tfplan
+        terraform apply -auto-approve tfplan
       working-directory: ./EC2-TF
 
     - name: Save Terraform Plan
